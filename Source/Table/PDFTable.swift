@@ -41,6 +41,7 @@ public class PDFTable: PDFJSONSerializable {
      */
     public var showHeadersOnEveryPage: Bool = false
 
+    public var isSquare: Bool = false
     /**
      Public initalizer to create a table outside framework
      */
@@ -95,6 +96,7 @@ public class PDFTable: PDFJSONSerializable {
         table.padding = self.padding
         table.margin = self.margin
         table.showHeadersOnEveryPage = self.showHeadersOnEveryPage
+        table.isSquare = self.isSquare
         return table
     }
 }

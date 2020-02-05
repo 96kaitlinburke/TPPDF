@@ -35,6 +35,9 @@ extension PDFTable: Equatable {
         guard lhs.showHeadersOnEveryPage == rhs.showHeadersOnEveryPage else {
             return false
         }
+        guard lhs.isSquare == rhs.isSquare else {
+            return false
+        }
         return true
     }
 
