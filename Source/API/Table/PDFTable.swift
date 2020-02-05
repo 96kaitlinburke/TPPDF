@@ -41,6 +41,7 @@ public class PDFTable: PDFDocumentObject, PDFJSONSerializable {
      */
     public var showHeadersOnEveryPage: Bool = false
 
+    public var isSquare: Bool = false
     /**
      Generates cells from given `data` and `alignments` and stores the result in the instance variable `cells`
 
@@ -90,6 +91,7 @@ public class PDFTable: PDFDocumentObject, PDFJSONSerializable {
         table.padding = self.padding
         table.margin = self.margin
         table.showHeadersOnEveryPage = self.showHeadersOnEveryPage
+        table.isSquare = self.isSquare
         return table
     }
 }
