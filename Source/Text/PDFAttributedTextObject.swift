@@ -8,7 +8,7 @@
 /**
  Calculates and draws a text
  */
-internal class PDFAttributedTextObject: PDFObject {
+internal class PDFAttributedTextObject: PDFRenderObject {
 
     /**
      Instance of attributed text object, holds instance of `NSAttributedString`
@@ -71,8 +71,8 @@ internal class PDFAttributedTextObject: PDFObject {
 
      - throws: None
      */
-    override internal func calculate(generator: PDFGenerator, container: PDFContainer) throws -> [(PDFContainer, PDFObject)] {
-        var result: [(PDFContainer, PDFObject)] = []
+    override internal func calculate(generator: PDFGenerator, container: PDFContainer) throws -> [(PDFContainer, PDFRenderObject)] {
+        var result: [(PDFContainer, PDFRenderObject)] = []
 
         // Generate attributed string if simple text, otherwise uses given attributedText
         attributedString = try generateAttributedText(generator: generator, container: container)
@@ -156,6 +156,59 @@ internal class PDFAttributedTextObject: PDFObject {
         if generator.debug {
             PDFGraphics.drawRect(rect: self.frame, outline: PDFLineStyle(type: .dashed, color: .red, width: 1.0), fill: .clear)
         }
+
+        let allRange = NSRange(location: 0, length: attributedString.length)
+        var links: [(String, NSRange)] = []
+        attributedString.enumerateAttribute(.link, in: allRange) { (obj, range, _) in
+            if let url = obj as? String {
+                links.append((url, range))
+            }
+        }
+
+        calculateLinkAttributes(with: links, in: frameRef, in: allRange, context: currentContext, debug: generator.debug)
+        applyAttributes()
+    }
+
+    private func calculateLinkAttributes(with links: [(url: String, range: NSRange)], in frameRef: CTFrame, in allRange: NSRange, context: CGContext, debug: Bool) {
+        guard let lines = CTFrameGetLines(frameRef) as? [CTLine] else {
+            return
+        }
+        var lineMetrics: [(line: CTLine, bounds: CGRect, range: CFRange)] = []
+        for (i, line) in lines.enumerated() {
+            var ascent: CGFloat = 0
+            var descent: CGFloat = 0
+            var leading: CGFloat = 0
+            let typoBounds = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, &leading))
+
+            var lineOrigin = CGPoint.zero
+            CTFrameGetLineOrigins(frameRef, CFRange(location: lines.count - i - 1, length: 1), &lineOrigin)
+
+            let lineBounds = CGRect(x: self.frame.origin.x,
+                                    y: self.frame.origin.y + lineOrigin.y,
+                                    width: typoBounds,
+                                    height: ascent + descent + leading)
+            lineMetrics.append((line: line, bounds: lineBounds, range: CTLineGetStringRange(line)))
+        }
+        for link in links {
+            for metric in lineMetrics {
+                if let intersection = NSRange(location: metric.range.location,
+                                              length: metric.range.length).intersection(link.range) {
+                    let startOffset = CTLineGetOffsetForStringIndex(metric.line, intersection.location, nil)
+                    let endOffset = CTLineGetOffsetForStringIndex(metric.line, intersection.location + intersection.length, nil)
+
+                    let linkFrame = CGRect(
+                        x: self.frame.origin.x + startOffset,
+                        y: metric.bounds.origin.y,
+                        width: endOffset - startOffset,
+                        height: metric.bounds.height)
+                    attributes.append((attribute: .link(url: URL(string: link.url)!), frame: linkFrame))
+
+                    if debug {
+                        PDFGraphics.drawRect(rect: linkFrame, outline: .none, fill: UIColor.red.withAlphaComponent(0.4))
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -224,7 +277,7 @@ internal class PDFAttributedTextObject: PDFObject {
     /**
      TODO: Documentation
      */
-    override internal var copy: PDFObject {
+    override internal var copy: PDFRenderObject {
         return PDFAttributedTextObject(text: (self.attributedText ?? self.simpleText)!)
     }
 }

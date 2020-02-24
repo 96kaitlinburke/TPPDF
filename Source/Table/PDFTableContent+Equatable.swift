@@ -26,6 +26,7 @@ extension PDFTableContent: Equatable {
         } else if (lhs.content == nil && rhs.content != nil) || (lhs.content != nil && rhs.content == nil) {
             return false
         }
+        
         return true
     }
 
