@@ -9,7 +9,7 @@
  A table is a two dimensional list.
  It can be styled and can contain different data.
  */
-public class PDFTable: PDFDocumentObject, PDFJSONSerializable {
+public class PDFTable: PDFJSONSerializable {
 
     /**
      Styling used for drawing
@@ -42,6 +42,11 @@ public class PDFTable: PDFDocumentObject, PDFJSONSerializable {
     public var showHeadersOnEveryPage: Bool = false
 
     public var isSquare: Bool = false
+    /**
+     Public initalizer to create a table outside framework
+     */
+    public init() {}
+
     /**
      Generates cells from given `data` and `alignments` and stores the result in the instance variable `cells`
 
