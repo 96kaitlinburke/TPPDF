@@ -174,7 +174,13 @@ internal class PDFTableObject: PDFRenderObject {
                                contentWidth: frame.frames.content.width)
 
         frame.frames.content.size = result.size
-        frame.frames.cell.size.height = result.height + 2 * table.padding
+        //my changes
+        if table.isSquare {
+            frame.frames.cell.size.height = frame.frames.cell.size.width
+        } else {
+            frame.frames.cell.size.height = result.height + 2 * table.padding
+        }
+        
 
         return frame
     }

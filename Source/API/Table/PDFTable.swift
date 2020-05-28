@@ -44,10 +44,6 @@ public class PDFTable: PDFJSONSerializable {
     public var showHeadersOnEveryPage: Bool = false
 
     public var isSquare: Bool = false
-    /**
-     Public initalizer to create a table outside framework
-     */
-    public init() {}
 
     /**
      Count of rows and columns in this table
